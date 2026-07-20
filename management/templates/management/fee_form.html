@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if fee %}Edit Fee{% else %}Add New Fee{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-money-bill-wave me-2"></i>
+                        {% if fee %}Edit Fee Record{% else %}Add New Fee{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Student -->
+                        <div class="mb-3">
+                            <label for="{{ form.student.id_for_label }}" class="form-label">
+                                <i class="fas fa-user-graduate me-1"></i>Student
+                            </label>
+                            <select name="{{ form.student.name }}"
+                                    class="form-select {% if form.student.errors %}is-invalid{% endif %}"
+                                    id="{{ form.student.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for student in form.student.field.queryset %}
+                                    <option value="{{ student.pk }}" {% if form.student.value|stringformat:"s" == student.pk|stringformat:"s" %}selected{% endif %}>
+                                        {{ student.full_name }} ({{ student.Admission_Number }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.student.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.student.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Fee Type -->
+                        <div class="mb-3">
+                            <label for="{{ form.fee_type.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Fee Type
+                            </label>
+                            <select name="{{ form.fee_type.name }}"
+                                    class="form-select {% if form.fee_type.errors %}is-invalid{% endif %}"
+                                    id="{{ form.fee_type.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for ft in form.fee_type.field.queryset %}
+                                    <option value="{{ ft.pk }}" {% if form.fee_type.value|stringformat:"s" == ft.pk|stringformat:"s" %}selected{% endif %}>
+                                        {{ ft.name }} ({{ ft.amount }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.fee_type.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.fee_type.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Amount Due and Amount Paid -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.amount_due.id_for_label }}" class="form-label">
+                                    <i class="fas fa-dollar-sign me-1"></i>Amount Due
+                                </label>
+                                <input type="number" step="0.01" name="{{ form.amount_due.name }}"
+                                       class="form-control {% if form.amount_due.errors %}is-invalid{% endif %}"
+                                       id="{{ form.amount_due.id_for_label }}"
+                                       value="{{ form.amount_due.value|default:'' }}" required>
+                                {% if form.amount_due.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.amount_due.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.amount_paid.id_for_label }}" class="form-label">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>Amount Paid
+                                </label>
+                                <input type="number" step="0.01" name="{{ form.amount_paid.name }}"
+                                       class="form-control {% if form.amount_paid.errors %}is-invalid{% endif %}"
+                                       id="{{ form.amount_paid.id_for_label }}"
+                                       value="{{ form.amount_paid.value|default:'0' }}">
+                                {% if form.amount_paid.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.amount_paid.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Due Date and Paid Date -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar-alt me-1"></i>Due Date
+                                </label>
+                                <input type="date" name="{{ form.due_date.name }}"
+                                       class="form-control {% if form.due_date.errors %}is-invalid{% endif %}"
+                                       id="{{ form.due_date.id_for_label }}"
+                                       value="{{ form.due_date.value|date:'Y-m-d' }}" required>
+                                {% if form.due_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.due_date.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.paid_date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-check-circle me-1"></i>Paid Date
+                                </label>
+                                <input type="date" name="{{ form.paid_date.name }}"
+                                       class="form-control {% if form.paid_date.errors %}is-invalid{% endif %}"
+                                       id="{{ form.paid_date.id_for_label }}"
+                                       value="{{ form.paid_date.value|date:'Y-m-d' }}">
+                                {% if form.paid_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.paid_date.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Payment Method and Transaction ID -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                    <i class="fas fa-credit-card me-1"></i>Payment Method
+                                </label>
+                                <select name="{{ form.payment_method.name }}"
+                                        class="form-select {% if form.payment_method.errors %}is-invalid{% endif %}"
+                                        id="{{ form.payment_method.id_for_label }}">
+                                    <option value="">---------</option>
+                                    {% for value, label in form.payment_method.field.choices %}
+                                        {% if value %}
+                                            <option value="{{ value }}" {% if form.payment_method.value == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                {% if form.payment_method.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.payment_method.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.transaction_id.id_for_label }}" class="form-label">
+                                    <i class="fas fa-hashtag me-1"></i>Transaction ID
+                                </label>
+                                <input type="text" name="{{ form.transaction_id.name }}"
+                                       class="form-control {% if form.transaction_id.errors %}is-invalid{% endif %}"
+                                       id="{{ form.transaction_id.id_for_label }}"
+                                       value="{{ form.transaction_id.value|default:'' }}">
+                                {% if form.transaction_id.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.transaction_id.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>Status
+                            </label>
+                            <select name="{{ form.status.name }}"
+                                    class="form-select {% if form.status.errors %}is-invalid{% endif %}"
+                                    id="{{ form.status.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for value, label in form.status.field.choices %}
+                                    {% if value %}
+                                        <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.status.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>Notes
+                            </label>
+                            <textarea name="{{ form.notes.name }}"
+                                      class="form-control {% if form.notes.errors %}is-invalid{% endif %}"
+                                      id="{{ form.notes.id_for_label }}" rows="3">{{ form.notes.value|default:'' }}</textarea>
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.notes.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'fee_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>{% if fee %}Update{% else %}Save{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountDue = document.getElementById('{{ form.amount_due.id_for_label }}');
+        const amountPaid = document.getElementById('{{ form.amount_paid.id_for_label }}');
+    });
+</script>
+{% endblock %}

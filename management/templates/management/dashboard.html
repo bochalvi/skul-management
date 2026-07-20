@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card students">
+                <h3><i class="fas fa-users"></i> Total Students</h3>
+                <h2>{{ total_students }}</h2>
+                <a href="{% url 'student_list' %}" class="text-white">View Details →</a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card attendance">
+                <h3><i class="fas fa-calendar-check"></i> Today's Attendance</h3>
+                <h2>{{ present_today|default:0 }}%</h2>
+                <a href="{% url 'attendance_list' %}" class="text-white">Mark Attendance →</a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card fees">
+                <h3><i class="fas fa-money-bill-wave"></i> Pending Fees</h3>
+                <h2>Kshs {{ pending_fees|default:0|floatformat:2 }}</h2>
+                <a href="{% url 'fee_list' %}" class="text-white">Collect Fees →</a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card lessons">
+                <h3><i class="fas fa-book-open"></i> Today's Lessons</h3>
+                <h2>{{ today_lessons|default:0 }}</h2>
+                <a href="{% url 'lesson_plan_list' %}" class="text-white">View Plans →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Recent Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in recent_attendance %}
+                            <tr>
+                                <td>{{ record.student.full_name }}</td>
+                                <td>{{ record.attendance_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if record.status == 'Present' %}bg-success
+                                        {% elif record.status == 'Absent' %}bg-danger
+                                        {% elif record.status == 'Late' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ record.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No recent attendance records</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Recent Fee Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fee in recent_fees %}
+                            <tr>
+                                <td>{{ fee.student.full_name }}</td>
+                                <td>Kshs {{ fee.amount_paid|floatformat:2 }} / {{ fee.amount_due|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if fee.status == 'Paid' %}bg-success
+                                        {% elif fee.status == 'Unpaid' %}bg-danger
+                                        {% elif fee.status == 'partially paid' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ fee.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No recent fee transactions</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Birthdays Section (Optional) -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-birthday-cake me-2"></i>Today's Birthdays</h5>
+                </div>
+                <div class="card-body">
+                    {% if today_birthdays %}
+                        <ul class="list-unstyled mb-0">
+                            {% for student in today_birthdays %}
+                                <li><i class="fas fa-user-graduate me-2"></i> {{ student.full_name }} (Grade: {{ student.class_name|default:"Not assigned" }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No birthdays today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: white;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card.students { background: linear-gradient(45deg, #3498db, #2980b9); }
+    .stat-card.attendance { background: linear-gradient(45deg, #2ecc71, #27ae60); }
+    .stat-card.fees { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+    .stat-card.lessons { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+    .stat-card h3 { font-size: 1rem; margin-bottom: 10px; }
+    .stat-card h2 { font-size: 2rem; margin-bottom: 10px; }
+    .stat-card a { text-decoration: none; opacity: 0.8; }
+    .stat-card a:hover { opacity: 1; text-decoration: underline; }
+</style>
+{% endblock %}

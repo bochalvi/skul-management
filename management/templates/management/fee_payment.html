@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Record Payment</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Fee Details -->
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Fee Details</h5>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <th>Student:</th>
+                                <td>{{ fee.student.full_name }} ({{ fee.student.Admission_Number }})</td>
+                            </tr>
+                            <tr>
+                                <th>Fee Type:</th>
+                                <td>{{ fee.fee_type.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount Due:</th>
+                                <td>Kshs {{ fee.amount_due }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount Paid:</th>
+                                <td>Kshs {{ fee.amount_paid }}</td>
+                            </tr>
+                            <tr>
+                                <th>Balance:</th>
+                                <td class="fw-bold {% if balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                                    Kshs {{ balance }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Due Date:</th>
+                                <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="badge 
+                                        {% if fee.status == 'Paid' %}bg-success
+                                        {% elif fee.status == 'Unpaid' %}bg-danger
+                                        {% elif fee.status == 'Partially Paid' %}bg-warning text-dark
+                                        {% elif fee.status == 'Overdue' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ fee.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="amount_paid" class="form-label">Payment Amount (Kshs)</label>
+                            <input type="number" step="0.01" name="amount_paid" id="amount_paid" 
+                                    class="form-control" value="{{ balance }}" max="{{ balance }}" required>
+                            <small class="text-muted">Maximum: Kshs {{ balance }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select name="payment_method" id="payment_method" class="form-select" required>
+                                <option value="">Select method</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="credit_card">Credit Card</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="mobile_money">Mobile Money</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="transaction_id" class="form-label">Transaction ID (optional)</label>
+                            <input type="text" name="transaction_id" id="transaction_id" class="form-control">
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'fee_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i>Process Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Optional: Ensure payment amount does not exceed balance
+    document.getElementById('amount_paid').addEventListener('input', function(e) {
+        var max = parseFloat(this.getAttribute('max'));
+        var value = parseFloat(this.value);
+        if (value > max) {
+            this.value = max;
+        }
+    });
+</script>
+{% endblock %}

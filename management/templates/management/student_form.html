@@ -1,0 +1,255 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block title %}{% if student %}Edit Student{% else %}Add New Student{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        {% if student %}Edit Student{% else %}Register New Student{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Personal Information Section -->
+                        <h5 class="mb-3 text-primary">Personal Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-1"></i>First Name
+                                </label>
+                                <input type="text" name="{{ form.First_Name.name }}" 
+                                        class="form-control {% if form.First_Name.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.First_Name.id_for_label }}" 
+                                        value="{{ form.First_Name.value|default:'' }}" required>
+                                {% if form.First_Name.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.First_Name.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Last Name
+                                </label>
+                                <input type="text" name="{{ form.Last_Name.name }}" 
+                                        class="form-control {% if form.Last_Name.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Last_Name.id_for_label }}" 
+                                        value="{{ form.Last_Name.value|default:'' }}" required>
+                                {% if form.Last_Name.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Last_Name.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar-alt me-1"></i>Date of Birth
+                                </label>
+                                <input type="date" name="{{ form.date_of_birth.name }}" 
+                                       class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.date_of_birth.id_for_label }}" 
+                                       value="{{ form.date_of_birth.value|date:'Y-m-d' }}" required>
+                                {% if form.date_of_birth.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.date_of_birth.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                    <i class="fas fa-venus-mars me-1"></i>Gender
+                                </label>
+                                <select name="{{ form.Gender.name }}" 
+                                        class="form-select {% if form.Gender.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Gender.id_for_label }}" required>
+                                    <option value="">---------</option>
+                                    {% for value, label in form.Gender.field.choices %}
+                                        {% if value %}
+                                            <option value="{{ value }}" {% if form.Gender.value == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                {% if form.Gender.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Gender.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                <i class="fas fa-home me-1"></i>Address
+                            </label>
+                            <textarea name="{{ form.Address.name }}" 
+                                        class="form-control {% if form.Address.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Address.id_for_label }}" rows="2">{{ form.Address.value|default:'' }}</textarea>
+                            {% if form.Address.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.Address.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.Parent_Guardian_contact.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>Phone
+                                </label>
+                                <input type="text" name="{{ form.Parent_Guardian_contact.name }}" 
+                                        class="form-control {% if form.Parent_Guardian_contact.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Parent_Guardian_contact.id_for_label }}" 
+                                        value="{{ form.Parent_Guardian_contact.value|default:'' }}">
+                                {% if form.Parent_Guardian_contact.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Parent_Guardian_contact.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.Parent_Guardian_Email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </label>
+                                <input type="email" name="{{ form.Parent_Guardian_Email.name }}" 
+                                        class="form-control {% if form.Parent_Guardian_Email.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Parent_Guardian_Email.id_for_label }}" 
+                                        value="{{ form.Parent_Guardian_Email.value|default:'' }}">
+                                {% if form.Parent_Guardian_Email.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Parent_Guardian_Email.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Parent/Guardian Information -->
+                        <h5 class="mb-3 mt-4 text-primary">Parent/Guardian Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.Parent_Guardian_Name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user-friends me-1"></i>Parent Name
+                                </label>
+                                <input type="text" name="{{ form.Parent_Guardian_Name.name }}" 
+                                        class="form-control {% if form.Parent_Guardian_Name.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Parent_Guardian_Name.id_for_label }}" 
+                                        value="{{ form.Parent_Guardian_Name.value|default:'' }}" required>
+                                {% if form.Parent_Guardian_Name.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Parent_Guardian_Name.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.parent_phone.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone-alt me-1"></i>Parent Phone
+                                </label>
+                                <input type="text" name="{{ form.Parent_Guardian_Contact.name }}" 
+                                        class="form-control {% if form.Parent_Guardian_Contact.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.Parent_Guardian_Contact.id_for_label }}" 
+                                        value="{{ form.Parent_Guardian_Contact.value|default:'' }}" required>
+                                {% if form.Parent_Guardian_Contact.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.Parent_Guardian_Contact.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.parent_email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Parent Email
+                            </label>
+                            <input type="email" name="{{ form.Parent_Guardian_Email.name }}" 
+                                    class="form-control {% if form.Parent_Guardian_Email.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.Parent_Guardian_Email.id_for_label }}" 
+                                    value="{{ form.Parent_Guardian_Email.value|default:'' }}">
+                            {% if form.Parent_Guardian_Email.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.Parent_Guardian_Email.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Additional Information -->
+                        <h5 class="mb-3 mt-4 text-primary">Additional Information</h5>
+                        <div class="mb-3">
+                            <label for="{{ form.Photo.id_for_label }}" class="form-label">
+                                <i class="fas fa-camera me-1"></i>Photo
+                            </label>
+                            {% if student and student.Photo %}
+                                <div class="mb-2">
+                                    <img src="{{ student.Photo.url }}" alt="Current photo" height="100">
+                                </div>
+                            {% endif %}
+                            <input type="file" name="{{ form.Photo.name }}" 
+                                    class="form-control {% if form.Photo.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.Photo.id_for_label }}" accept="image/*">
+                            {% if form.Photo.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.Photo.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" name="{{ form.is_active.name }}" 
+                                    class="form-check-input {% if form.is_active.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.is_active.id_for_label }}" 
+                                    {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Active Student
+                            </label>
+                            {% if form.is_active.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.is_active.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Enrollment Date (hidden or read-only) -->
+                        {% if student and student.Enrollment_Date %}
+                        <div class="mb-3">
+                            <label class="form-label">Enrollment Date</label>
+                            <p class="form-control-plaintext">{{ student.Enrollment_Date|date:"F d, Y" }}</p>
+                        </div>
+                        {% endif %}
+
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'student_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>{% if student %}Update{% else %}Save{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

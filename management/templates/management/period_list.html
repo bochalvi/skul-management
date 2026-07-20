@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Periods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold mb-0">
+                <i class="fas fa-clock text-primary me-2"></i>School Periods
+            </h1>
+            <p class="text-muted mt-2">Configure daily class periods and timings</p>
+        </div>
+        <div>
+            <a href="{% url 'period_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>Add New Period
+            </a>
+            <a href="{% url 'timetable_list' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left me-1"></i>Back to Timetable
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Information:</strong> Periods define the daily class schedule. Each period has a start time, end time, and period number. These will be used when creating timetable entries.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Periods Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-gradient-primary text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i> Periods List
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 80px;">#</th>
+                            <th>Period Number</th>
+                            <th>Period Name</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in periods %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td>
+                                <span class="badge bg-primary rounded-pill px-3 py-2">
+                                    Period {{ period.period_number }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ period.name|default:"—" }}</strong>
+                                {% if period.name %}
+                                <br>
+                                <small class="text-muted">Period {{ period.period_number }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-play-circle text-success me-1"></i>
+                                {{ period.start_time|time:"g:i A" }}
+                            </td>
+                            <td>
+                                <i class="fas fa-stop-circle text-danger me-1"></i>
+                                {{ period.end_time|time:"g:i A" }}
+                            </td>
+                            <td>
+                                {% with duration=period.end_time.hour|add:period.end_time.minute|add:0 %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-hourglass-half me-1"></i>
+                                        {{ period.start_time|time:"H:i" }} - {{ period.end_time|time:"H:i" }}
+                                    </span>
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i> Active
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'period_edit' period.pk %}" class="btn btn-sm btn-outline-warning" 
+                                       data-bs-toggle="tooltip" title="Edit Period">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ period.pk }}"
+                                            title="Delete Period">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal{{ period.pk }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Delete period <strong>#{{ period.period_number }}</strong>?</p>
+                                                <p class="text-danger mb-0">
+                                                    <small><i class="fas fa-exclamation-triangle me-1"></i>This will also delete associated timetable entries.</small>
+                                                </p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="post" action="{% url 'period_delete' period.pk %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-clock fa-4x mb-3 d-block text-muted"></i>
+                                <h5 class="text-muted">No periods configured yet</h5>
+                                <p class="text-muted mb-0">Click the "Add New Period" button to create your first period.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if periods %}
+        <div class="card-footer bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Total periods: {{ periods|length }}
+                    </small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        These periods will appear in all class timetables
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sample Schedule Preview (if periods exist) -->
+    {% if periods %}
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">
+                <i class="fas fa-eye me-1"></i> Schedule Preview
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-3">
+                {% for period in periods %}
+                <div class="period-preview">
+                    <div class="card bg-light" style="width: 120px;">
+                        <div class="card-body text-center p-2">
+                            <strong class="text-primary">Period {{ period.period_number }}</strong>
+                            <hr class="my-1">
+                            <small>{{ period.start_time|time:"g:i A" }}</small>
+                            <br>
+                            <small class="text-muted">to</small>
+                            <br>
+                            <small>{{ period.end_time|time:"g:i A" }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .period-preview {
+        transition: transform 0.2s ease;
+    }
+    .period-preview:hover {
+        transform: translateY(-3px);
+    }
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}

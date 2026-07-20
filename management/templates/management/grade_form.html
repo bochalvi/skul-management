@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if grade %}Edit Grade{% else %}Add New Grade{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-gradient-primary text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        {% if grade %}Edit Grade Record{% else %}Record New Grade{% endif %}
+                    </h4>
+                    <p class="text-white-50 mb-0 small mt-1">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {% if grade %}Update the grade information below{% else %}Fill in the details to record a student's grade{% endif %}
+                    </p>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Student Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.student.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-user-graduate me-2 text-primary"></i>{{ form.student.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.student }}
+                            {% if form.student.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.student.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Select the student from the dropdown list</small>
+                        </div>
+
+                        <!-- Class Assigned Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.class_assigned.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-building me-2 text-primary"></i>{{ form.class_assigned.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.class_assigned }}
+                            {% if form.class_assigned.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.class_assigned.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Select the class this grade belongs to</small>
+                        </div>
+
+                        <!-- Subject and Exam Type Row -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-book me-2 text-primary"></i>{{ form.subject.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.subject.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.exam_type.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-clipboard-list me-2 text-primary"></i>{{ form.exam_type.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.exam_type }}
+                                {% if form.exam_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.exam_type.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Grade Field with Live Preview -->
+                        <div class="mb-4">
+                            <label for="{{ form.grade.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-percent me-2 text-primary"></i>{{ form.grade.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.grade }}
+                            {% if form.grade.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.grade.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="mt-2" id="gradePreview"></div>
+                            <small class="text-muted">Enter a value between 0 and 100 (decimals allowed)</small>
+                        </div>
+
+                        <!-- Grade Scale Indicator -->
+                        <div class="alert alert-secondary mb-4">
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <div class="fw-bold text-success">A (80-100%)</div>
+                                    <small>Excellent</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-info">B (60-79%)</div>
+                                    <small>Good</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-warning">C (40-59%)</div>
+                                    <small>Satisfactory</small>
+                                </div>
+                                <div class="col-3">
+                                    <div class="fw-bold text-danger">D/F (0-39%)</div>
+                                    <small>Needs Improvement</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comments Field -->
+                        <div class="mb-4">
+                            <label for="{{ form.comments.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-comment me-2 text-primary"></i>{{ form.comments.label }}
+                            </label>
+                            {{ form.comments }}
+                            {% if form.comments.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.comments.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Add any additional comments or feedback for the student</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="{% url 'grade_list' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>
+                                {% if grade %}Update Grade{% else %}Save Grade{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styling for form inputs */
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Live grade preview with color coding
+    const gradeInput = document.querySelector('#{{ form.grade.id_for_label }}');
+    const gradePreview = document.getElementById('gradePreview');
+    
+    if (gradeInput) {
+        gradeInput.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            
+            if (!isNaN(value) && value >= 0 && value <= 100) {
+                let gradeClass = '';
+                let gradeText = '';
+                let icon = '';
+                
+                if (value >= 80) {
+                    gradeClass = 'success';
+                    gradeText = 'Excellent performance!';
+                    icon = '🎉';
+                } else if (value >= 60) {
+                    gradeClass = 'info';
+                    gradeText = 'Good work! Keep improving.';
+                    icon = '👍';
+                } else if (value >= 40) {
+                    gradeClass = 'warning';
+                    gradeText = 'Satisfactory. Needs more effort.';
+                    icon = '📚';
+                } else if (value >= 0) {
+                    gradeClass = 'danger';
+                    gradeText = 'Needs significant improvement.';
+                    icon = '⚠️';
+                }
+                
+                gradePreview.innerHTML = `
+                    <div class="alert alert-${gradeClass} alert-dismissible fade show mb-0 py-2">
+                        <i class="fas fa-${gradeClass === 'success' ? 'check-circle' : (gradeClass === 'info' ? 'info-circle' : (gradeClass === 'warning' ? 'exclamation-triangle' : 'times-circle'))} me-2"></i>
+                        <strong>${value}%</strong> - ${gradeText} ${icon}
+                    </div>
+                `;
+            } else if (value !== '' && (value < 0 || value > 100)) {
+                gradePreview.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show mb-0 py-2">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Please enter a valid grade between 0 and 100.
+                    </div>
+                `;
+            } else {
+                gradePreview.innerHTML = '';
+            }
+        });
+    }
+    
+    // Add floating labels effect
+    document.querySelectorAll('.form-control, .form-select').forEach(input => {
+        input.classList.add('form-control-lg');
+    });
+</script>
+{% endblock %}

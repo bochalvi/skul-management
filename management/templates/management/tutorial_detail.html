@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tutorial.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'lesson_plan_list' %}">Lesson Plans</a></li>
+        <li class="breadcrumb-item active">{{ lessonplan.topic }}</li>
+    </ol>
+</nav>
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tutorial_list' %}">Tutorials</a></li>
+            <li class="breadcrumb-item active">{{ tutorial.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3>{{ tutorial.title }}</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Subject:</strong> {{ tutorial.subject }}</p>
+                    {% if tutorial.grade_level %}
+                    <p><strong>Grade Level:</strong> {{ tutorial.grade_level }}</p>
+                    {% endif %}
+                    <hr>
+                    <div class="tutorial-content">
+                        {{ tutorial.content|safe }}
+                    </div>
+                    
+                    {% if tutorial.video_url %}
+                    <hr>
+                    <h5>Video</h5>
+                    <div class="ratio ratio-16x9">
+                        {% if 'youtube.com/watch?v=' in tutorial.video_url %}
+                            {% with video_id=tutorial.video_url|cut:'https://www.youtube.com/watch?v=' %}
+                                <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen></iframe>
+                            {% endwith %}
+                        {% elif 'youtu.be/' in tutorial.video_url %}
+                            {% with video_id=tutorial.video_url|cut:'https://youtu.be/' %}
+                                <iframe src="https://www.youtube.com/embed/{{ video_id }}" allowfullscreen></iframe>
+                            {% endwith %}
+                        {% else %}
+                            <iframe src="{{ tutorial.video_url }}" allowfullscreen></iframe>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if tutorial.attachment %}
+                    <hr>
+                    <a href="{{ tutorial.attachment.url }}" class="btn btn-outline-secondary" download>
+                        <i class="fas fa-download me-1"></i>Download Attachment
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Progress</h5>
+                </div>
+                <div class="card-body">
+                    {% if student %}
+                        {% if progress.completed %}
+                            <p class="text-success"><i class="fas fa-check-circle me-1"></i>You completed this tutorial on {{ progress.completed_at|date:"F j, Y" }}.</p>
+                            <form method="post">
+                                {% csrf_token %}
+                                <button type="submit" name="mark_incomplete" class="btn btn-warning w-100">
+                                    <i class="fas fa-undo me-1"></i>Mark as Incomplete
+                                </button>
+                            </form>
+                        {% else %}
+                            <p class="text-muted">You haven't completed this tutorial yet.</p>
+                            <form method="post">
+                                {% csrf_token %}
+                                <button type="submit" name="mark_complete" class="btn btn-success w-100">
+                                    <i class="fas fa-check me-1"></i>Mark as Complete
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Login as a student to track progress.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

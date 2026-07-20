@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}My Timetable{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <h1 class="display-6 fw-bold mb-0">
+            <i class="fas fa-chalkboard-teacher text-primary me-2"></i>My Teaching Schedule
+        </h1>
+        <p class="text-muted mt-2">{{ user.get_full_name|default:user.username }}</p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i> Weekly Schedule
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered timetable-table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="time-col">Time/Period</th>
+                            {% for day in days %}
+                            <th class="day-col">{{ day.name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in periods %}
+                        <tr>
+                            <td class="time-cell">
+                                <strong>{{ period.start_time|time:"H:i" }}</strong><br>
+                                <small class="text-muted">{{ period.end_time|time:"H:i" }}</small>
+                            </td>
+                            {% for day in days %}
+                            <td class="lesson-cell">
+                                {% with entry=timetable_grid|get_item:day.id|get_item:period.id %}
+                                    {% if entry %}
+                                        {% if entry.is_break %}
+                                            <div class="break-lesson">
+                                                <strong>BREAK</strong>
+                                            </div>
+                                        {% else %}
+                                            <div class="regular-lesson">
+                                                <div class="subject">{{ entry.class_assigned.name }}</div>
+                                                <div class="teacher">{{ entry.subject }}</div>
+                                                {% if entry.room %}
+                                                <div class="room">{{ entry.room }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="empty-lesson">
+                                            — <br>
+                                            <small>Free</small>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Same styles as above */
+    .timetable-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .timetable-table th {
+        background-color: #2c3e50;
+        color: white;
+        padding: 12px;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #34495e;
+    }
+    
+    .timetable-table td {
+        padding: 12px;
+        vertical-align: top;
+        border: 1px solid #dee2e6;
+        background-color: white;
+    }
+    
+    .time-col {
+        width: 100px;
+        background-color: #34495e !important;
+    }
+    
+    .day-col {
+        min-width: 180px;
+    }
+    
+    .time-cell {
+        background-color: #f8f9fa;
+        text-align: center;
+        vertical-align: middle !important;
+    }
+    
+    .lesson-cell {
+        vertical-align: top;
+    }
+    
+    .regular-lesson {
+        padding: 5px;
+    }
+    
+    .subject {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .teacher {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 3px;
+    }
+    
+    .room {
+        font-size: 11px;
+        color: #28a745;
+    }
+    
+    .break-lesson {
+        background-color: #fff3cd;
+        padding: 8px;
+        text-align: center;
+        border-radius: 5px;
+    }
+    
+    .break-lesson strong {
+        color: #856404;
+    }
+    
+    .empty-lesson {
+        text-align: center;
+        color: #adb5bd;
+        padding: 15px 0;
+    }
+    
+    @media print {
+        .btn-group, .btn, .card-header .btn {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

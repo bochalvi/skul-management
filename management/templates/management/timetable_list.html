@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Timetable Entries{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calendar-alt me-2"></i>Timetable Entries</h1>
+        <div>
+            <a href="{% url 'timetable_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>Add Entry
+            </a>
+            <a href="{% url 'timetable_copy' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-copy me-1"></i>Copy Timetable
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="class" class="form-label">Class</label>
+                    <select name="class" id="class" class="form-select">
+                        <option value="">All Classes</option>
+                        {% for class in classes %}
+                            <option value="{{ class.id }}" {% if request.GET.class == class.id|stringformat:"s" %}selected{% endif %}>
+                                {{ class.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="day" class="form-label">Day</label>
+                    <select name="day" id="day" class="form-select">
+                        <option value="">All Days</option>
+                        {% for day in days %}
+                            <option value="{{ day.id }}" {% if request.GET.day == day.id|stringformat:"s" %}selected{% endif %}>
+                                {{ day.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Entries Table -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Timetable Entries</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Class</th>
+                            <th>Day</th>
+                            <th>Period</th>
+                            <th>Subject</th>
+                            <th>Teacher</th>
+                            <th>Room</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                            <td>{{ entry.class_assigned.name }}</a></td>
+                            <td>{{ entry.day.name }}</td>
+                            <td>Period {{ entry.period.period_number }}<br>
+                                <small class="text-muted">{{ entry.period.start_time|time:"H:i" }} - {{ entry.period.end_time|time:"H:i" }}</small>
+                            </td>
+                            <td>{{ entry.subject }}</a></td>
+                            <td>{{ entry.teacher.get_full_name|default:entry.teacher.username }}</a></td>
+                            <td>{{ entry.room|default:"—" }}</a></td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'timetable_edit' entry.pk %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'timetable_delete' entry.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-calendar-times fa-3x mb-3 d-block text-muted"></i>
+                                <h5>No timetable entries found</h5>
+                                <p class="text-muted">Click "Add Entry" to create your first timetable entry.</p>
+                            </a>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if is_paginated %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">&laquo;&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;&raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

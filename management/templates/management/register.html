@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register | School Management System{% endblock %}
+
+{% block auth_content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Create an Account</h3>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-1"></i>Username
+                            </label>
+                            <input type="text" name="{{ form.username.name }}" 
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.username.id_for_label }}" 
+                                   value="{{ form.username.value|default:'' }}"
+                                   required>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.username.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-signature me-1"></i>First Name
+                            </label>
+                            <input type="text" name="{{ form.first_name.name }}" 
+                                   class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.first_name.id_for_label }}" 
+                                   value="{{ form.first_name.value|default:'' }}"
+                                   required>
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.first_name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-signature me-1"></i>Last Name
+                            </label>
+                            <input type="text" name="{{ form.last_name.name }}" 
+                                   class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.last_name.id_for_label }}" 
+                                   value="{{ form.last_name.value|default:'' }}"
+                                   required>
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.last_name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Email Address
+                            </label>
+                            <input type="email" name="{{ form.email.name }}" 
+                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.email.id_for_label }}" 
+                                   value="{{ form.email.value|default:'' }}"
+                                   required>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.email.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password1 -->
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock me-1"></i>Password
+                            </label>
+                            <input type="password" name="{{ form.password1.name }}" 
+                                   class="form-control {% if form.password1.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.password1.id_for_label }}" 
+                                   required>
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.password1.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Your password must contain at least 8 characters, can’t be entirely numeric, and can’t be too common.
+                            </small>
+                        </div>
+
+                        <!-- Password2 -->
+                        <div class="mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock me-1"></i>Confirm Password
+                            </label>
+                            <input type="password" name="{{ form.password2.name }}" 
+                                   class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.password2.id_for_label }}" 
+                                   required>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.password2.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-check me-2"></i>Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <div class="small">
+                        Already have an account? <a href="{% url 'login' %}" class="text-primary">Sign in here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

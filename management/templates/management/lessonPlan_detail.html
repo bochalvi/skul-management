@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lessonplan.topic }} - Lesson Plan Details{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'lesson_plan_list' %}">Lesson Plans</a></li>
+        <li class="breadcrumb-item active">{{ lessonplan.topic }}</li>
+    </ol>
+</nav>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-book-open me-2"></i>Lesson Plan Details</h1>
+        <div>
+            <a href="{% url 'lesson_plan_list' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+            <a href="#" class="btn btn-outline-secondary me-2" onclick="window.print()">
+                <i class="fas fa-print me-1"></i>Print
+            </a>
+
+            <a href="{% url 'lesson_plan_edit' lessonplan.pk %}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-1"></i>Edit
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="fas fa-trash me-1"></i>Delete
+            </button>
+        </div>
+    </div>
+
+    <!-- Lesson Information Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Lesson Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Subject:</label>
+                    <p>{{ lessonplan.subject }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Grade Level:</label>
+                    <p>{{ lessonplan.grade_level }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Topic:</label>
+                    <p>{{ lessonplan.topic }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Class Assigned:</label>
+                    <p>{{ lessonplan.class_assigned.name|default:"—" }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Status:</label>
+                    <p>
+                        <span class="badge 
+                            {% if lessonplan.status == 'Draft' %}bg-secondary
+                            {% elif lessonplan.status == 'Planned' %}bg-primary
+                            {% elif lessonplan.status == 'Completed' %}bg-success
+                            {% elif lessonplan.status == 'Cancelled' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                            {{ lessonplan.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Schedule</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold">Date:</label>
+                    <p>{{ lessonplan.date|date:"l, F j, Y" }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold">Time:</label>
+                    <p>{{ lessonplan.start_time|time:"g:i A" }} - {{ lessonplan.end_time|time:"g:i A" }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold">Duration:</label>
+                    <p>{{ lessonplan.duration }} minutes</p>
+                </div>
+                {% if lessonplan.day_of_week %}
+                <div class="col-md-4 mb-3">
+                    <label class="fw-bold">Day of Week (recurring):</label>
+                    <p>{{ lessonplan.get_day_of_week_display }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Teacher</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Name:</label>
+                    <p>{{ lessonplan.teacher.get_full_name|default:lessonplan.teacher.username }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Email:</label>
+                    <p>{{ lessonplan.teacher.email|default:"—" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Objectives -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-bullseye me-2"></i>Learning Objectives</h5>
+        </div>
+        <div class="card-body">
+            <p>{{ lessonplan.objectives|linebreaks }}</p>
+        </div>
+    </div>
+
+    <!-- Materials Needed -->
+    {% if lessonplan.materials %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Materials Needed</h5>
+        </div>
+        <div class="card-body">
+            <p>{{ lessonplan.materials|linebreaks }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Activities -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-running me-2"></i>Activities</h5>
+        </div>
+        <div class="card-body">
+            <p>{{ lessonplan.activities|linebreaks }}</p>
+        </div>
+    </div>
+
+    <!-- Assessment -->
+    {% if lessonplan.assessment_methods %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Assessment Methods</h5>
+        </div>
+        <div class="card-body">
+            <p>{{ lessonplan.assessment_methods|linebreaks }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Homework -->
+    {% if lessonplan.homework %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-home me-2"></i>Homework</h5>
+        </div>
+        <div class="card-body">
+            <p>{{ lessonplan.homework|linebreaks }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadata Card -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Record Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">Created: {{ lessonplan.created_at|date:"F j, Y, g:i a" }}</small>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Last Updated: {{ lessonplan.updated_at|date:"F j, Y, g:i a" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the lesson plan <strong>{{ lessonplan.topic }}</strong>?<br>
+                <small class="text-danger">This action cannot be undone.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'lesson_plan_delete' lessonplan.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

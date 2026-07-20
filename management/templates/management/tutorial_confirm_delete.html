@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if tutorial %}Edit Tutorial{% else %}Create Tutorial{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        {% if tutorial %}Edit Tutorial{% else %}Create New Tutorial{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                <i class="fas fa-heading me-1"></i>Title
+                            </label>
+                            <input type="text" name="{{ form.title.name }}" 
+                                   class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.title.id_for_label }}" 
+                                   value="{{ form.title.value|default:'' }}" required>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.title.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Subject and Grade Level (side by side) -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                    <i class="fas fa-book me-1"></i>Subject
+                                </label>
+                                <input type="text" name="{{ form.subject.name }}" 
+                                       class="form-control {% if form.subject.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.subject.id_for_label }}" 
+                                       value="{{ form.subject.value|default:'' }}" required>
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.subject.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.grade_level.id_for_label }}" class="form-label">
+                                    <i class="fas fa-layer-group me-1"></i>Grade Level
+                                </label>
+                                <input type="text" name="{{ form.grade_level.name }}" 
+                                       class="form-control {% if form.grade_level.errors %}is-invalid{% endif %}" 
+                                       id="{{ form.grade_level.id_for_label }}" 
+                                       value="{{ form.grade_level.value|default:'' }}">
+                                {% if form.grade_level.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.grade_level.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Description
+                            </label>
+                            <textarea name="{{ form.description.name }}" 
+                                      class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                                      id="{{ form.description.id_for_label }}" rows="3">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.description.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Content (rich text) -->
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                <i class="fas fa-code me-1"></i>Content
+                            </label>
+                            <textarea name="{{ form.content.name }}" 
+                                      class="form-control {% if form.content.errors %}is-invalid{% endif %}" 
+                                      id="{{ form.content.id_for_label }}" rows="10">{{ form.content.value|default:'' }}</textarea>
+                            <small class="form-text text-muted">HTML allowed (you can use a rich text editor later).</small>
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.content.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Video URL -->
+                        <div class="mb-3">
+                            <label for="{{ form.video_url.id_for_label }}" class="form-label">
+                                <i class="fab fa-youtube me-1"></i>Video URL (optional)
+                            </label>
+                            <input type="url" name="{{ form.video_url.name }}" 
+                                   class="form-control {% if form.video_url.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.video_url.id_for_label }}" 
+                                   value="{{ form.video_url.value|default:'' }}">
+                            <small class="form-text text-muted">YouTube or Vimeo link.</small>
+                            {% if form.video_url.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.video_url.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Attachment -->
+                        <div class="mb-3">
+                            <label for="{{ form.attachment.id_for_label }}" class="form-label">
+                                <i class="fas fa-paperclip me-1"></i>Attachment (optional)
+                            </label>
+                            {% if tutorial and tutorial.attachment %}
+                                <div class="mb-2">
+                                    Current: <a href="{{ tutorial.attachment.url }}" target="_blank">{{ tutorial.attachment.name }}</a>
+                                </div>
+                            {% endif %}
+                            <input type="file" name="{{ form.attachment.name }}" 
+                                   class="form-control {% if form.attachment.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.attachment.id_for_label }}">
+                            {% if form.attachment.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.attachment.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Published -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" name="{{ form.is_published.name }}" 
+                                   class="form-check-input {% if form.is_published.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.is_published.id_for_label }}" 
+                                   {% if form.is_published.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                                Publish (visible to students)
+                            </label>
+                            {% if form.is_published.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.is_published.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'tutorial_list_admin' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>{% if tutorial %}Update{% else %}Save{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

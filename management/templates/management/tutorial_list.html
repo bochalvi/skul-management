@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Learning Tutorials{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Student Tutorials</h1>
+
+    <!-- Search Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by title or subject..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for tutorial in tutorials %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 {% if tutorial.completed %}border-success{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ tutorial.title }}</h5>
+                    <p class="card-text">{{ tutorial.description|truncatechars:100 }}</p>
+                    <p class="text-muted small">Subject: {{ tutorial.subject }}</p>
+                    <p class="text-muted small">Grade: {{ tutorial.grade_level|default:"All Grades" }}</p>
+                    {% if tutorial.completed %}
+                        <span class="badge bg-success">Completed</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Started</span>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'tutorial_detail' tutorial.pk %}" class="btn btn-sm btn-primary">View Tutorial</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-book-open fa-4x mb-3 text-muted"></i>
+                <h4>No tutorials found</h4>
+                <p class="text-muted">Try adjusting your search or check back later.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

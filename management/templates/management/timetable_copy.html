@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Copy Timetable{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-copy me-2"></i>Copy Timetable
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="source_class" class="form-label">Copy From (Source Class)</label>
+                            {{ form.source_class }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="target_class" class="form-label">Copy To (Target Class)</label>
+                            {{ form.target_class }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="academic_year" class="form-label">Academic Year</label>
+                                {{ form.academic_year }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="term" class="form-label">Term</label>
+                                {{ form.term }}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This will replace all existing timetable entries for the target class.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'timetable_list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Copy Timetable</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

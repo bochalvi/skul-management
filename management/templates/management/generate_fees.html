@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate Monthly Fees{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Generate Monthly Fees</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Fee Type -->
+                        <div class="mb-3">
+                            <label for="fee_type" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Fee Type
+                            </label>
+                            <select name="fee_type" id="fee_type" class="form-select" required>
+                                <option value="">---------</option>
+                                {% for ft in fee_types %}
+                                    <option value="{{ ft.id }}">{{ ft.name }} (${{ ft.amount }}) - {{ ft.get_frequency_display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Month and Year -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="month" class="form-label">
+                                    <i class="fas fa-calendar-alt me-1"></i>Month
+                                </label>
+                                <select name="month" id="month" class="form-select" required>
+                                    <option value="">---------</option>
+                                    {% for m in months %}
+                                        <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>
+                                            {{ m|stringformat:"02d" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="year" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Year
+                                </label>
+                                <select name="year" id="year" class="form-select" required>
+                                    <option value="">---------</option>
+                                    {% for y in years %}
+                                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This will create pending fee records for <strong>all active students</strong> using the selected fee type. Due date will be set to the 10th of the chosen month.
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'fee_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play me-1"></i>Generate Fees
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

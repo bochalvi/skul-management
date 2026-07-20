@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+{# for get_item if needed, though not used here directly #}
+
+{% block title %}{{ student.full_name }} - Student Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header with actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-graduate me-2"></i>Student Profile</h1>
+        <div>
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+            <a href="{% url 'student_edit' student.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i>Edit Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Personal Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    {% if student.Photo %}
+                        <img src="{{ student.Photo.url }}" alt="{{ student.full_name }}" 
+                            class="img-fluid rounded-circle border border-3 border-primary mb-3" 
+                            style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                            style="width: 150px; height: 150px; font-size: 4rem;">
+                            {{ student.First_Name|first|upper }}{{ student.Last_Name|first|upper }}
+                        </div>
+                    {% endif %}
+                    <h4>{{ student.full_name }}</h4>
+                    <p class="text-muted">Student ID: <strong>{{ student.Admission_Number }}</strong></p>
+                    <span class="badge {% if student.is_active %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                        {{ student.is_active|yesno:"Active,Inactive" }}
+                    </span>
+                </div>
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Date of Birth:</label>
+                            <p>{{ student.date_of_birth|date:"F d, Y" }} ({{ student.get_age }} years)</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Gender:</label>
+                            <p>{{ student.get_Gender_display }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Enrollment Date:</label>
+                            <p>{{ student.Enrollment_Date|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Phone:</label>
+                            <p>{{ student.Contact_Number|default:"—" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Email:</label>
+                            <p>{{ student.Parent_Guardian_Email|default:"—" }}</p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="fw-bold">Address:</label>
+                            <p>{{ student.Address|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent/Guardian Information Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Parent/Guardian Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Parent Name:</label>
+                    <p>{{ student.Parent_Guardian_Name }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Parent Phone:</label>
+                    <p>{{ student.Parent_Guardian_Contact }}</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="fw-bold">Parent Email:</label>
+                    <p>{{ student.Parent_Guardian_Email|default:"—" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards Row -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Attendance Rate</h6>
+                        <h2 class="mb-0">{{ attendance_rate|default:"0" }}%</h2>
+                    </div>
+                    <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Fees Due</h6>
+                        <h2 class="mb-0">${{ total_fees_due|floatformat:2 }}</h2>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Fees Paid</h6>
+                        <h2 class="mb-0">${{ total_fees_paid|floatformat:2 }}</h2>
+                    </div>
+                    <i class="fas fa-hand-holding-usd fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Recent Attendance</h5>
+            <a href="{% url 'attendance_list' %}?student={{ student.pk }}" class="btn btn-sm btn-light">View All</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.attendance_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if record.status == 'Present' %}bg-success
+                                {% elif record.status == 'Absent' %}bg-danger
+                                {% elif record.status == 'Late' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %}">
+                                {{ record.status }}
+                            </span>
+                        </td>
+                        <td>{{ record.check_in_time|time:"H:i"|default:"—" }}</td>
+                        <td>{{ record.check_out_time|time:"H:i"|default:"—" }}</td>
+                        <td>{{ record.notes|truncatechars:20|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No attendance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Fee Records -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Fee Records</h5>
+            <a href="{% url 'fee_list' %}?student={{ student.Admission_Number }}" class="btn btn-sm btn-dark">View All</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Fee Type</th>
+                        <th>Due Date</th>
+                        <th>Amount Due</th>
+                        <th>Amount Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in fee_records %}
+                    <tr>
+                        <td>{{ fee.fee_type.name }}</td>
+                        <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                        <td>${{ fee.amount_due|floatformat:2 }}</td>
+                        <td>${{ fee.amount_paid|floatformat:2 }}</td>
+                        <td>${{ fee.balance|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if fee.status == 'paid' %}bg-success
+                                {% elif fee.status == 'pending' %}bg-danger
+                                {% elif fee.status == 'partial' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %}">
+                                {{ fee.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No fee records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Grades -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-star me-2"></i>Grades</h5>
+            <a href="" class="btn btn-sm btn-light">View All</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Exam Type</th>
+                        <th>Date</th>
+                        <th>Grade</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.subject }}</td>
+                        <td>{{ grade.exam_type }}</td>
+                        <td>{{ grade.date|date:"M d, Y" }}</td>
+                        <td><strong>{{ grade.grade }}%</strong></td>
+                        <td>{{ grade.comments|truncatechars:20|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No grades recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Optionally add any JavaScript for interactive elements
+</script>
+{% endblock %}

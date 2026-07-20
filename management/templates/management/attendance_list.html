@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Daily Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calendar-check me-2"></i>Daily Attendance</h1>
+        <div>
+            <a href="{% url 'attendance_report' %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-chart-bar me-1"></i>Reports
+            </a>
+            <a href="{% url 'export_attendance_excel' %}?date={{ selected_date|date:'Y-m-d' }}" class="btn btn-outline-success">
+                <i class="fas fa-file-excel me-1"></i>Export Today
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Selection Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <label for="date" class="form-label fw-bold">Select Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="date" name="date" id="date" class="form-control" 
+                                value="{{ selected_date|date:'Y-m-d' }}" required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sync-alt me-1"></i>Load
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Summary Cards (updated via JavaScript) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Students</h6>
+                        <h2 class="mb-0" id="total-count">{{ all_students|length }}</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Present</h6>
+                        <h2 class="mb-0" id="present-count">0</h2>
+                    </div>
+                    <i class="fas fa-user-check fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Late</h6>
+                        <h2 class="mb-0" id="late-count">0</h2>
+                    </div>
+                    <i class="fas fa-clock fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Absent</h6>
+                        <h2 class="mb-0" id="absent-count">0</h2>
+                    </div>
+                    <i class="fas fa-user-times fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Marking Form -->
+    <div class="card">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Mark Attendance for {{ selected_date|date:"l, F j, Y" }}</h5>
+            <button type="submit" form="attendance-form" class="btn btn-success">
+                <i class="fas fa-save me-1"></i>Save All Changes
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <form method="post" id="attendance-form">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in all_students %}
+                            {% with attendance=attendance_dict|get_item:student.Admission_Number %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><span class="badge bg-secondary">{{ student.Admission_Number }}</span></td>
+                                <td>
+                                    <strong>{{ student.full_name }}</strong><br>
+                                    <small class="text-muted">{{ student.class_name|default:"—" }}</small>
+                                </td>
+                                <td>
+                                    <select name="status_{{ student.Admission_Number }}" class="form-select form-select-sm status-select" 
+                                            data-student-id="{{ student.Admission_Number }}" style="min-width: 120px;">
+                                        <option value="Present" {% if attendance and attendance.status == 'Present' %}selected{% endif %}>Present</option>
+                                        <option value="Absent" {% if attendance and attendance.status == 'Absent' %}selected{% endif %}>Absent</option>
+                                        <option value="Late" {% if attendance and attendance.status == 'Late' %}selected{% endif %}>Late</option>
+                                        <option value="Excused" {% if attendance and attendance.status == 'Excused' %}selected{% endif %}>Excused</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="time" name="check_in_{{ student.Admission_Number }}" class="form-control form-control-sm" 
+                                        value="{{ attendance.check_in_time|time:'H:i'|default:'' }}" 
+                                        {% if not attendance or attendance.status != 'Present' and attendance.status != 'Late' %}disabled{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="time" name="check_out_{{ student.Admission_Number }}" class="form-control form-control-sm" 
+                                        value="{{ attendance.check_out_time|time:'H:i'|default:'' }}"
+                                        {% if not attendance or attendance.status != 'Present' and attendance.status != 'Late' %}disabled{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="text" name="notes_{{ student.Admission_Number }}" class="form-control form-control-sm" 
+                                        value="{{ attendance.notes|default:'' }}" placeholder="Optional notes">
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-user-slash fa-3x mb-3 d-block text-muted"></i>
+                                    <h5>No active students found</h5>
+                                    <p class="text-muted">Add students to start marking attendance.</p>
+                                    <a href="{% url 'student_add' %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus-circle me-1"></i>Add Student
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-muted">
+            <small><i class="fas fa-info-circle me-1"></i> Only students with status Present or Late can have check-in/out times. Fields are automatically enabled/disabled based on status.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to update summary counts
+    function updateSummary() {
+        let present = 0, absent = 0, late = 0, excused = 0;
+        document.querySelectorAll('.status-select').forEach(select => {
+            const status = select.value;
+            if (status === 'Present') present++;
+            else if (status === 'Absent') absent++;
+            else if (status === 'Late') late++;
+            else if (status === 'Excused') excused++;
+        });
+        document.getElementById('present-count').textContent = present;
+        document.getElementById('absent-count').textContent = absent;
+        document.getElementById('late-count').textContent = late;
+    }
+
+    // Enable/disable time inputs based on status
+    function toggleTimeInputs(select) {
+        const row = select.closest('tr');
+        const checkIn = row.querySelector('input[name^="check_in_"]');
+        const checkOut = row.querySelector('input[name^="check_out_"]');
+        const isTimeAllowed = (select.value === 'Present' || select.value === 'Late');
+        checkIn.disabled = !isTimeAllowed;
+        checkOut.disabled = !isTimeAllowed;
+        if (!isTimeAllowed) {
+            checkIn.value = '';
+            checkOut.value = '';
+        }
+    }
+
+    // Attach event listeners to all status selects
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            toggleTimeInputs(this);
+            updateSummary();
+        });
+        // Initial toggle based on current value
+        toggleTimeInputs(select);
+    });
+
+    // Initial summary update
+    updateSummary();
+
+    // Auto-fill current time when status changes to present/late and time fields are empty
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.value === 'Present' || this.value === 'Late') {
+                const row = this.closest('tr');
+                const checkIn = row.querySelector('input[name^="check_in_"]');
+                if (checkIn && !checkIn.value) {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    checkIn.value = `${hours}:${minutes}`;  // ✅ Fixed
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

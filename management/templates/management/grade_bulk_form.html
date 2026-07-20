@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Bulk Grade Entry{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-users me-2"></i>Bulk Grade Entry</h1>
+        <div>
+            <a href="{% url 'grade_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Grades
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Enter Grades for Multiple Students</h5>
+        </div>
+        <div class="card-body">
+            <!-- Selection Form -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label for="class" class="form-label">Select Class</label>
+                    <select name="class" id="class" class="form-select" required>
+                        <option value="">---------</option>
+                        {% for class in form.class_assigned.field.queryset %}
+                            <option value="{{ class.id }}" {% if selected_class == class.id|stringformat:"s" %}selected{% endif %}>
+                                {{ class.name }} - {{ class.grade_level }} ({{ class.academic_year }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input type="text" name="subject" id="subject" class="form-control" 
+                           value="{{ request.GET.subject }}" placeholder="e.g., Mathematics" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="exam_type" class="form-label">Exam Type</label>
+                    <select name="exam_type" id="exam_type" class="form-select" required>
+                        <option value="">---------</option>
+                        <option value="Midterm" {% if request.GET.exam_type == 'Midterm' %}selected{% endif %}>Midterm</option>
+                        <option value="Final" {% if request.GET.exam_type == 'Final' %}selected{% endif %}>Final</option>
+                        <option value="Quiz" {% if request.GET.exam_type == 'Quiz' %}selected{% endif %}>Quiz</option>
+                        <option value="Assignment" {% if request.GET.exam_type == 'Assignment' %}selected{% endif %}>Assignment</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Load Students
+                    </button>
+                </div>
+            </form>
+
+            {% if students %}
+            <!-- Grade Entry Form -->
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="class_assigned" value="{{ selected_class }}">
+                <input type="hidden" name="subject" value="{{ request.GET.subject }}">
+                <input type="hidden" name="exam_type" value="{{ request.GET.exam_type }}">
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Admission Number</th>
+                                <th>Student Name</th>
+                                <th>Grade (%)</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ student.Admission_Number }}</td>
+                                <td>{{ student.full_name }}</td>
+                                <td>
+                                    <input type="number" name="grade_{{ student.id }}" 
+                                        class="form-control grade-input" 
+                                        step="0.01" min="0" max="100"
+                                        placeholder="0-100"
+                                        value="{{ existing_grades|get_item:student.id|default:'' }}">
+                                    <small class="text-muted grade-preview"></small>
+                                </td>
+                                <td>
+                                    <input type="text" name="comments_{{ student.id }}" 
+                                        class="form-control" 
+                                        placeholder="Optional comments"
+                                        value="{{ existing_comments|get_item:student.id|default:'' }}">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Instructions:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Enter grades between 0 and 100 (decimals allowed, e.g., 85.5)</li>
+                        <li>Leave blank to skip a student</li>
+                        <li>Existing grades will be updated if you enter new values</li>
+                    </ul>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'grade_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>Save All Grades
+                    </button>
+                </div>
+            </form>
+            {% elif request.GET.class %}
+            <div class="alert alert-warning text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3 d-block"></i>
+                <h5>No students found in this class</h5>
+                <p class="mb-0">Please select a different class or add students to this class first.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add real-time grade preview with color coding
+    document.querySelectorAll('.grade-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            const preview = this.parentElement.querySelector('.grade-preview');
+            
+            if (!isNaN(value) && value >= 0 && value <= 100) {
+                let color = '';
+                let text = '';
+                let emoji = '';
+                
+                if (value >= 80) {
+                    color = 'green';
+                    text = 'Excellent!';
+                    emoji = '🎉';
+                } else if (value >= 60) {
+                    color = 'blue';
+                    text = 'Good';
+                    emoji = '👍';
+                } else if (value >= 40) {
+                    color = 'orange';
+                    text = 'Satisfactory';
+                    emoji = '📚';
+                } else if (value >= 0) {
+                    color = 'red';
+                    text = 'Needs Improvement';
+                    emoji = '⚠️';
+                }
+                
+                // ✅ Fixed: Use backticks for template literal
+                preview.innerHTML = <span style="color: ${color}; font-weight: bold;">${text} ${emoji}</span>;
+            } else if (value !== '' && (value < 0 || value > 100)) {
+                preview.innerHTML = <span style="color: red; font-weight: bold;">⚠️ Please enter a grade between 0 and 100</span>;
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+    });
+    
+    // Keyboard navigation - Enter moves to next field
+    document.querySelectorAll('.grade-input').forEach((input, index, inputs) => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (inputs[index + 1]) {
+                    inputs[index + 1].focus();
+                }
+            }
+        });
+    });
+    
+    // Optional: Add visual feedback for valid/invalid grades
+    document.querySelectorAll('.grade-input').forEach(input => {
+        input.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value) && value >= 0 && value <= 100) {
+                this.style.borderColor = '#28a745';
+                this.style.backgroundColor = '#f0fff4';
+            } else if (value !== '' && (value < 0 || value > 100)) {
+                this.style.borderColor = '#dc3545';
+                this.style.backgroundColor = '#fff5f5';
+            } else {
+                this.style.borderColor = '#ced4da';
+                this.style.backgroundColor = '#ffffff';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,333 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block title %}{% if lessonplan %}Edit Lesson Plan{% else %}Create Lesson Plan{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-book-open me-2"></i>
+                        {% if lessonplan %}Edit Lesson Plan{% else %}Create New Lesson Plan{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Teacher -->
+                        <div class="mb-3">
+                            <label for="{{ form.teacher.id_for_label }}" class="form-label">
+                                <i class="fas fa-chalkboard-teacher me-1"></i>Teacher
+                            </label>
+                            <select name="{{ form.teacher.name }}" 
+                                    class="form-select {% if form.teacher.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.teacher.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for teacher in form.teacher.field.queryset %}
+                                    <option value="{{ teacher.pk }}" {% if form.teacher.value|stringformat:"s" == teacher.pk|stringformat:"s" %}selected{% endif %}>
+                                        {{ teacher.get_full_name|default:teacher.username }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.teacher.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.teacher.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <!-- Class Assigned -->
+                        <div class="mb-3">
+                            <label for="{{ form.class_assigned.id_for_label }}" class="form-label">
+                                <i class="fas fa-building me-1"></i>Class Assigned
+                            </label>
+                            <select name="{{ form.class_assigned.name }}" 
+                                    class="form-select {% if form.class_assigned.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.class_assigned.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for class in form.class_assigned.field.queryset %}
+                                    <option value="{{ class.pk }}" {% if form.class_assigned.value|stringformat:"s" == class.pk|stringformat:"s" %}selected{% endif %}>
+                                        {{ class.name }} - {{ class.grade_level }} ({{ class.academic_year }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.class_assigned.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.class_assigned.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Subject and Grade Level (side by side) -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                    <i class="fas fa-book me-1"></i>Subject
+                                </label>
+                                <input type="text" name="{{ form.subject.name }}" 
+                                        class="form-control {% if form.subject.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.subject.id_for_label }}" 
+                                        value="{{ form.subject.value|default:'' }}" required>
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.subject.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.grade_level.id_for_label }}" class="form-label">
+                                    <i class="fas fa-layer-group me-1"></i>Grade Level
+                                </label>
+                                <input type="text" name="{{ form.grade_level.name }}" 
+                                        class="form-control {% if form.grade_level.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.grade_level.id_for_label }}" 
+                                        value="{{ form.grade_level.value|default:'' }}" required>
+                                {% if form.grade_level.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.grade_level.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Topic -->
+                        <div class="mb-3">
+                            <label for="{{ form.topic.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Topic
+                            </label>
+                            <input type="text" name="{{ form.topic.name }}" 
+                                    class="form-control {% if form.topic.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.topic.id_for_label }}" 
+                                    value="{{ form.topic.value|default:'' }}" required>
+                            {% if form.topic.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.topic.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Objectives -->
+                        <div class="mb-3">
+                            <label for="{{ form.objectives.id_for_label }}" class="form-label">
+                                <i class="fas fa-bullseye me-1"></i>Learning Objectives
+                            </label>
+                            <textarea name="{{ form.objectives.name }}" 
+                                        class="form-control {% if form.objectives.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.objectives.id_for_label }}" rows="4" required>{{ form.objectives.value|default:'' }}</textarea>
+                            {% if form.objectives.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.objectives.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Materials Needed -->
+                        <div class="mb-3">
+                            <label for="{{ form.materials.id_for_label }}" class="form-label">
+                                <i class="fas fa-tools me-1"></i>Materials Needed
+                            </label>
+                            <textarea name="{{ form.materials.name }}" 
+                                        class="form-control {% if form.materials.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.materials.id_for_label }}" rows="3">{{ form.materials.value|default:'' }}</textarea>
+                            {% if form.materials.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.materials.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Activities -->
+                        <div class="mb-3">
+                            <label for="{{ form.activities.id_for_label }}" class="form-label">
+                                <i class="fas fa-running me-1"></i>Activities
+                            </label>
+                            <textarea name="{{ form.activities.name }}" 
+                                        class="form-control {% if form.activities.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.activities.id_for_label }}" rows="6" required>{{ form.activities.value|default:'' }}</textarea>
+                            {% if form.activities.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.activities.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Assessment -->
+                        <div class="mb-3">
+                            <label for="{{ form.assessment_methods.id_for_label }}" class="form-label">
+                                <i class="fas fa-clipboard-check me-1"></i>Assessment
+                            </label>
+                            <textarea name="{{ form.assessment_methods.name }}" 
+                                        class="form-control {% if form.assessment_methods.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.assessment_methods.id_for_label }}" rows="3">{{ form.assessment_methods.value|default:'' }}</textarea>
+                            {% if form.assessment.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.assessment.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Homework -->
+                        <div class="mb-3">
+                            <label for="{{ form.homework.id_for_label }}" class="form-label">
+                                <i class="fas fa-home me-1"></i>Homework
+                            </label>
+                            <textarea name="{{ form.homework.name }}" 
+                                        class="form-control {% if form.homework.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.homework.id_for_label }}" rows="3">{{ form.homework.value|default:'' }}</textarea>
+                            {% if form.homework.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.homework.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Duration, Date, Time (row) -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.duration.id_for_label }}" class="form-label">
+                                    <i class="fas fa-hourglass-half me-1"></i>Duration (minutes)
+                                </label>
+                                <input type="number" name="{{ form.duration.name }}" 
+                                        class="form-control {% if form.duration.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.duration.id_for_label }}" 
+                                        value="{{ form.duration.value|default:'45' }}" required>
+                                {% if form.duration.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.duration.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar-alt me-1"></i>Date
+                                </label>
+                                <input type="date" name="{{ form.date.name }}" 
+                                        class="form-control {% if form.date.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.date.id_for_label }}" 
+                                        value="{{ form.date.value|date:'Y-m-d' }}" required>
+                                {% if form.date.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.date.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.day_of_week.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar-week me-1"></i>Day of Week (optional)
+                                </label>
+                                <select name="{{ form.day_of_week.name }}" 
+                                        class="form-select {% if form.day_of_week.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.day_of_week.id_for_label }}">
+                                    <option value="">---------</option>
+                                    {% for value, label in form.day_of_week.field.choices %}
+                                        {% if value %}
+                                            <option value="{{ value }}" {% if form.day_of_week.value == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                {% if form.day_of_week.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.day_of_week.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Start Time and End Time -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.start_time.id_for_label }}" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>Start Time
+                                </label>
+                                <input type="time" name="{{ form.start_time.name }}" 
+                                        class="form-control {% if form.start_time.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.start_time.id_for_label }}" 
+                                        value="{{ form.start_time.value|time:'H:i' }}" required>
+                                {% if form.start_time.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.start_time.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.end_time.id_for_label }}" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>End Time
+                                </label>
+                                <input type="time" name="{{ form.end_time.name }}" 
+                                        class="form-control {% if form.end_time.errors %}is-invalid{% endif %}" 
+                                        id="{{ form.end_time.id_for_label }}" 
+                                        value="{{ form.end_time.value|time:'H:i' }}" required>
+                                {% if form.end_time.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.end_time.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>Status
+                            </label>
+                            <select name="{{ form.status.name }}" 
+                                    class="form-select {% if form.status.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.status.id_for_label }}" required>
+                                <option value="">---------</option>
+                                {% for value, label in form.status.field.choices %}
+                                    {% if value %}
+                                        <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.status.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'lesson_plan_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>{% if lessonplan %}Update{% else %}Save{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Optional: auto-calculate end time based on start time + duration? Or other helpers.
+    document.addEventListener('DOMContentLoaded', function() {
+        const startTime = document.getElementById('{{ form.start_time.id_for_label }}');
+        const duration = document.getElementById('{{ form.duration.id_for_label }}');
+        const endTime = document.getElementById('{{ form.end_time.id_for_label }}');
+        
+        // If you want to auto-suggest end time, you could add a listener.
+        // But it's optional; leave it to the user.
+    });
+</script>
+{% endblock %}

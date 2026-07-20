@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-bar me-2"></i>Attendance Report</h1>
+        <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Attendance
+        </a>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" class="form-control" 
+                           value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" name="end_date" id="end_date" class="form-control" 
+                           value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>Generate Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h6 class="card-title">Total Days</h6>
+                    <h2>{{ total_days|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h6 class="card-title">Overall Attendance</h6>
+                    <h2>{{ overall_attendance|default:0 }}%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h6 class="card-title">Total Present</h6>
+                    <h2>{{ total_present|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h6 class="card-title">Total Absent</h6>
+                    <h2>{{ total_absent|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Attendance Details</h5>
+        <div class="btn-group">
+            
+            </a>
+            <a href="{% url 'export_attendance_report_excel' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" 
+               class="btn btn-sm btn-light">
+                <i class="fas fa-file-excel me-1 text-success"></i>Excel Report
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr style="background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);">
+                        <th class="border-0">#</th>
+                        <th class="border-0">Student</th>
+                        <th class="border-0">Admission Number</th>
+                        <th class="border-0 text-center">Total Days</th>
+                        <th class="border-0 text-center">Present</th>
+                        <th class="border-0 text-center">Absent</th>
+                        <th class="border-0 text-center">Late</th>
+                        <th class="border-0 text-center">Excused</th>
+                        <th class="border-0 text-center">Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in attendance_data %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-user-graduate text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ data.student_first_name }} {{ data.student_last_name }}</strong>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ data.student_admission_number }}</span></td>
+                        <td class="text-center fw-bold">{{ data.total_days }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i>{{ data.present_days }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2">
+                                <i class="fas fa-times-circle me-1"></i>{{ data.absent_days }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                <i class="fas fa-clock me-1"></i>{{ data.late_days }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                <i class="fas fa-check me-1"></i>{{ data.excused_days }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="progress w-100 mb-1" style="height: 8px;">
+                                    <div class="progress-bar 
+                                        {% if data.attendance_percentage >= 80 %}bg-success
+                                        {% elif data.attendance_percentage >= 60 %}bg-info
+                                        {% elif data.attendance_percentage >= 40 %}bg-warning
+                                        {% else %}bg-danger{% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ data.attendance_percentage }}%;" 
+                                        aria-valuenow="{{ data.attendance_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <span class="fw-bold 
+                                    {% if data.attendance_percentage >= 80 %}text-success
+                                    {% elif data.attendance_percentage >= 60 %}text-info
+                                    {% elif data.attendance_percentage >= 40 %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                    {{ data.attendance_percentage|floatformat:1 }}%
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x mb-3 d-block text-muted"></i>
+                            <h5 class="text-muted">No attendance records found</h5>
+                            <p class="text-muted mb-0">Try selecting a different date range or mark attendance first.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Showing {{ attendance_data|length }} student records
+                </small>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm {
+        width: 35px;
+        height: 35px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .table > :not(caption) > * > * {
+        vertical-align: middle;
+    }
+    
+    .bg-opacity-10 {
+        --bs-bg-opacity: 0.1;
+    }
+    
+    .progress {
+        border-radius: 10px;
+        background-color: #e9ecef;
+    }
+    
+    .progress-bar {
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    @media print {
+        .btn-group, .btn, .card-header .btn-group {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .table {
+            border-collapse: collapse !important;
+        }
+    }
+</style>
+{% endblock %}
