@@ -11,3 +11,8 @@
         }
     ]
 }
+{
+  "scripts": {
+    "vercel-build": "sed -i '1s/^\\xEF\\xBB\\xBF//' requirements.txt && your_original_build_command"
+  }
+}
