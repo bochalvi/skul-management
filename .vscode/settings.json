@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
         "dictsortreuler"
-    ]
+    ],
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
